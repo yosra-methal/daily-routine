@@ -185,8 +185,8 @@ input:checked+.slider:before {
     position: sticky;
     left: 0;
     z-index: 50;
-    width: 60px;
-    min-width: 60px;
+    width: 75px;
+    min-width: 75px;
     background: #fff;
     /* Match bg to avoid transparency over events */
     border-right: 1px solid var(--grid-line);
@@ -211,6 +211,7 @@ input:checked+.slider:before {
     padding-top: 6px;
     /* Offset for text alignment with line */
     position: relative;
+    white-space: nowrap;
 }
 
 /* Horizontal lines traversing the day column */

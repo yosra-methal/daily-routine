@@ -418,8 +418,25 @@ function updateInputMode() {
     document.getElementById('start-ampm').classList.toggle('hidden', is24);
     document.getElementById('end-ampm').classList.toggle('hidden', is24);
 
-    // Update max/min for inputs if needed, usually browser handles number inputs well enough
-    // But helpful for validation
+    // Update constraints for Hour inputs
+    const maxHour = is24 ? 23 : 12;
+    const minHour = is24 ? 0 : 1;
+
+    ['start-h', 'end-h'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.setAttribute('min', minHour);
+            el.setAttribute('max', maxHour);
+            // Also enforce on input to prevent manual typing of invalid numbers
+            el.oninput = function () {
+                let v = parseInt(this.value);
+                if (!isNaN(v)) {
+                    if (v > maxHour) this.value = maxHour;
+                    // Note: don't enforce min strictly on typing as user might type '1' then '2' or backspace
+                }
+            };
+        }
+    });
 }
 
 function setTimeInputs(startStr, endStr) {
