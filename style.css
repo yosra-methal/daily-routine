@@ -1,0 +1,559 @@
+:root {
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --text-color: #333333;
+    --text-muted: #666666;
+    --grid-line: #F0F0F0;
+    --card-bg: #FFFFFF;
+    --header-bg: #F9F9F9;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --radius-card: 0px;
+    /* Notion widgets meant to fill frames often look better flush or with minimal radius */
+    --radius-label: 6px;
+
+    /* Colors */
+    --c-blue-bg: #E1F5FE;
+    --c-blue-border: #0288D1;
+    --c-green-bg: #E8F5E9;
+    --c-green-border: #388E3C;
+    --c-rose-bg: #FCE4EC;
+    --c-rose-border: #D81B60;
+    --c-purple-bg: #F3E5F5;
+    --c-purple-border: #7B1FA2;
+    --c-orange-bg: #FFF0EB;
+    --c-orange-border: #FF8B66;
+    --c-grey-bg: #F5F5F5;
+    --c-grey-border: #616161;
+
+    --slot-height: 60px;
+
+    /* Zoning colors */
+    --zone-morning: rgba(255, 250, 240, 0.4);
+    --zone-afternoon: rgba(240, 250, 255, 0.4);
+    --zone-evening: rgba(245, 240, 255, 0.4);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-family);
+    color: var(--text-color);
+    background-color: transparent;
+    padding: 0;
+    /* Remove padding to fill Notion block */
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    overflow: hidden;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 0px;
+    /* Hide scrollbars for cleaner Notion look, rely on trackpad/mouse scroll */
+    background: transparent;
+}
+
+.app-container {
+    background: var(--card-bg);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Header */
+.header {
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--grid-line);
+    flex-shrink: 0;
+    background: var(--card-bg);
+    z-index: 10;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.add-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid #eee;
+    background: #fff;
+    color: #666;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.add-btn:hover {
+    background: #333;
+    color: #fff;
+    border-color: #333;
+}
+
+.controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #888;
+}
+
+/* Switch */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 32px;
+    height: 18px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #eee;
+    transition: .4s;
+    border-radius: 20px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+input:checked+.slider {
+    background-color: #333;
+}
+
+input:checked+.slider:before {
+    transform: translateX(14px);
+}
+
+/* Layout */
+.planner-wrapper {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+    overflow-y: auto;
+    position: relative;
+    background: #fff;
+    scroll-behavior: smooth;
+}
+
+.time-column {
+    position: sticky;
+    left: 0;
+    z-index: 50;
+    width: 60px;
+    min-width: 60px;
+    background: #fff;
+    /* Match bg to avoid transparency over events */
+    border-right: 1px solid var(--grid-line);
+    padding-top: 0;
+    padding-bottom: 20px;
+}
+
+.time-corner-spacer {
+    /* No header anymore, but we might need a small top spacing */
+    height: 0px;
+}
+
+.time-slot {
+    height: var(--slot-height);
+    font-size: 11px;
+    color: #999;
+    text-align: right;
+    padding-right: 12px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    padding-top: 6px;
+    /* Offset for text alignment with line */
+    position: relative;
+}
+
+/* Horizontal lines traversing the day column */
+.time-slot::after {
+    content: "";
+    position: absolute;
+    right: -100vw;
+    /* Extend far to the right */
+    top: 0;
+    width: 200vw;
+    /* Span across the day grid */
+    height: 1px;
+    background: var(--grid-line);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.time-slot.last-slot::after {
+    display: none;
+}
+
+.days-grid {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    /* Ensure lines from time-slot are visible/clipped correctly if we used ::after, but better to render lines in grid-cell or use global lines? 
+       Actually, common pattern is grid-cell borders. 
+       Let's use the time-slot ::after approach or the previous grid-cell approach.
+       Previous used grid-cell. Let's stick to grid-cell for clean borders. */
+}
+
+/* Time-slot ::after is a bit risky with overflows. Let's revert and use grid-cells. */
+.time-slot::after {
+    display: none;
+}
+
+
+.day-column {
+    flex: 1;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.day-body {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Zoning */
+.day-zone {
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    /* Label on right or left? user said 'discreet text labels' */
+    padding: 10px 20px;
+    pointer-events: none;
+}
+
+.zone-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    opacity: 0.3;
+    text-transform: uppercase;
+}
+
+.zone-morning {
+    background: var(--zone-morning);
+}
+
+.zone-afternoon {
+    background: var(--zone-afternoon);
+}
+
+.zone-evening {
+    background: var(--zone-evening);
+}
+
+.grid-cell {
+    height: var(--slot-height);
+    border-bottom: 1px solid var(--grid-line);
+    width: 100%;
+    box-sizing: border-box;
+    z-index: 1;
+    /* Above background zones */
+}
+
+/* Current Time Indicator (Optional but nice) */
+/* Events */
+.event-card {
+    position: absolute;
+    padding: 6px 12px;
+    border-radius: var(--radius-label);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-color);
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: row;
+    /* Horizontal layout for title - time */
+    align-items: center;
+    gap: 8px;
+    z-index: 10;
+    transition: transform 0.1s;
+    /* Width and Left set by JS */
+}
+
+.event-card.compact {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+}
+
+.event-card:hover {
+    z-index: 100 !important;
+    transform: scale(1.01);
+}
+
+.event-card.blue {
+    background: var(--c-blue-bg);
+    border-left: 3px solid var(--c-blue-border);
+}
+
+.event-card.green {
+    background: var(--c-green-bg);
+    border-left: 3px solid var(--c-green-border);
+}
+
+.event-card.rose {
+    background: var(--c-rose-bg);
+    border-left: 3px solid var(--c-rose-border);
+}
+
+.event-card.purple {
+    background: var(--c-purple-bg);
+    border-left: 3px solid var(--c-purple-border);
+}
+
+.event-card.orange {
+    background: var(--c-orange-bg);
+    border-left: 3px solid var(--c-orange-border);
+}
+
+.event-card.grey {
+    background: var(--c-grey-bg);
+    border-left: 3px solid var(--c-grey-border);
+}
+
+/* Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    backdrop-filter: blur(2px);
+}
+
+.modal.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-content {
+    background: white;
+    padding: 24px;
+    border-radius: 16px;
+    width: 400px;
+    max-width: 90%;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    transform: scale(0.96);
+    transition: transform 0.2s ease;
+}
+
+.modal.visible .modal-content {
+    transform: scale(1);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.modal-header h2 {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #999;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-group input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #eee;
+    background: #fcfcfc;
+    border-radius: 8px;
+    font-size: 15px;
+}
+
+.form-row {
+    display: flex;
+    gap: 16px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+.time-12h {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.t-input {
+    width: 44px;
+    padding: 10px 4px;
+    text-align: center;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    font-size: 14px;
+    background: #fff;
+}
+
+.t-select {
+    padding: 10px 4px;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    font-size: 14px;
+    background: #fff;
+    cursor: pointer;
+}
+
+.colon {
+    font-weight: 600;
+    color: #ccc;
+}
+
+.color-options {
+    display: flex;
+    gap: 12px;
+}
+
+.color-option {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 0.2s;
+}
+
+.color-option.selected {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--glow-color);
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 32px;
+}
+
+.spacer {
+    flex: 1;
+}
+
+.btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: #111;
+    color: white;
+}
+
+.btn-secondary {
+    background: #f5f5f5;
+    color: #333;
+}
+
+.btn-danger {
+    background: #fff0f0;
+    color: #d32f2f;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.input-error {
+    border-color: #FF3B30 !important;
+}
+
+.error-text {
+    color: #FF3B30;
+    font-size: 11px;
+    margin-top: 4px;
+}
